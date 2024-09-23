@@ -1,12 +1,12 @@
+# Streamlit app
 import os
 import streamlit as st
 import google.generativeai as genai
-from dotenv import load_dotenv, find_dotenv
 
 
 def ask_and_get_answer(prompt, img):
     # creating a GenerativeModel instance using the Gemini-Pro-Vision model
-    model = genai.GenerativeModel('gemini-pro-vision')
+    model = genai.GenerativeModel('gemini-1.5-pro-latest')
 
     # generate a text response based on the prompt and image
     response = model.generate_content([prompt, img])
@@ -28,28 +28,26 @@ def st_image_to_pil(st_image):
 
 # application entry point
 if __name__ == '__main__':
-    # loading the environment variables from the .env file that contains the Google API key.
-    load_dotenv(find_dotenv(), override=True)
+    api_key = st.text_input("Enter your Google API key", type="password")
 
     # configuring the generative AI model to use the GOOGLE_API_KEY for authentication.
-    genai.configure(api_key=os.environ.get('GOOGLE_API_KEY'))
+    genai.configure(api_key=api_key)
 
-    # displaying the Gemini logo and subheader.
-    st.image('gemini.png')  # this image is in the current directory
-    st.subheader('Talking With an Image ✨')
+    st.subheader('Talking With an Image ✨ by Gemini Vison 🤖')
 
     # creating a file upload widget for the user to select an image.
-    img = st.file_uploader('Select an Image: ', type=[
-                           'jpg', 'jpeg', 'png', 'gif'])
+    img = st.file_uploader(
+        'Select an Image: ',
+        type=['jpg', 'jpeg', 'png', 'gif']
+    )
 
     # if the user has selected an image, I am displaying it and allowing the user to ask questions about it.
-    if img:
-        st.image(img, caption='Talk with this image.')
+    if api_key and img:
+        st.image(img, caption='Talk with this image!')
 
         # displaying a text input for the prompt.
         prompt = st.text_area('Ask a question about this image: ')
 
-        # if the user has entered a question, we go ahead and make the API call to Gemini.
         if prompt:
             # converting the st.file_uploader object to a PIL image object
             pil_image = st_image_to_pil(img)
@@ -60,7 +58,7 @@ if __name__ == '__main__':
                 answer = ask_and_get_answer(prompt, pil_image)
 
                 # displaying the answer in a text area widget.
-                st.text_area('Gemini Answer: ', value=answer)
+                st.text_area('Dear Gemini Answer: ', value=answer)
 
             # adding a divider to separate the current answer from the previous ones.
             st.divider()
@@ -81,7 +79,11 @@ if __name__ == '__main__':
             h = f'{value} \n\n {"-" * 100} \n\n {st.session_state.history}'
 
             # displaying a text area for the chat history.
-            st.text_area(label='Chat History', value=h,
-                         height=400, key='history')
+            st.text_area(
+                label='Chat History',
+                value=h,
+                height=400,
+                key='history'
+            )
 
 # Run the app: streamlit run ./gemini_talk_with_a_photo.py
